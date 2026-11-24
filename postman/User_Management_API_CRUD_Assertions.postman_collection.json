@@ -1,0 +1,429 @@
+{
+  "info": {
+    "_postman_id": "8f6d6e2a-7c41-4d31-9f2a-qa-user-management",
+    "name": "User Management API - CRUD & Integration Assertions",
+    "description": "End-to-end CRUD and negative API tests for the Spring Boot User Management API. Base URL defaults to http://localhost:8081. Run requests in order using Collection Runner. The Create request generates a unique email and stores userId/userEmail for chained requests. Keep the Spring Boot application and MySQL running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userEmail",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Create User (POST)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "const uniqueEmail = \"madhavi.qa.\" + Date.now() + \"@example.com\";",
+              "pm.collectionVariables.set(\"userEmail\", uniqueEmail);",
+              "pm.collectionVariables.unset(\"userId\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Status is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "pm.test(\"Response contains a generated user ID\", function () {",
+              "    const data = pm.response.json();",
+              "    pm.expect(data.id).to.exist;",
+              "    pm.expect(data.id).to.be.a(\"number\");",
+              "});",
+              "pm.test(\"Created user details are correct\", function () {",
+              "    const data = pm.response.json();",
+              "    pm.expect(data.firstName).to.eql(\"Madhavi\");",
+              "    pm.expect(data.lastName).to.eql(\"Tester\");",
+              "    pm.expect(data.email).to.eql(pm.collectionVariables.get(\"userEmail\"));",
+              "    pm.expect(data.phone).to.eql(\"9876543210\");",
+              "    pm.expect(data.status).to.eql(\"ACTIVE\");",
+              "});",
+              "const created = pm.response.json();",
+              "pm.collectionVariables.set(\"userId\", String(created.id));",
+              "pm.collectionVariables.set(\"userEmail\", created.email);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        },
+        "description": "Creates a user with a unique email. Saves the returned ID and email as collection variables.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Madhavi\",\n  \"lastName\": \"Tester\",\n  \"email\": \"{{userEmail}}\",\n  \"phone\": \"9876543210\",\n  \"status\": \"ACTIVE\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "02 - Get All Users (GET)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Response is an array\", function () {",
+              "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+              "});",
+              "pm.test(\"Created user is present in the list\", function () {",
+              "    const users = pm.response.json();",
+              "    const id = Number(pm.collectionVariables.get(\"userId\"));",
+              "    pm.expect(users.some(user => user.id === id)).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        },
+        "description": "Retrieves all users and checks that the user created in request 01 is included."
+      },
+      "response": []
+    },
+    {
+      "name": "03 - Get User by ID (GET)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Returned user ID matches the created ID\", function () {",
+              "    const data = pm.response.json();",
+              "    pm.expect(String(data.id)).to.eql(pm.collectionVariables.get(\"userId\"));",
+              "});",
+              "pm.test(\"Returned email matches the created email\", function () {",
+              "    const data = pm.response.json();",
+              "    pm.expect(data.email).to.eql(pm.collectionVariables.get(\"userEmail\"));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Fetches the user using the ID saved by the Create request."
+      },
+      "response": []
+    },
+    {
+      "name": "04 - Update User (PUT)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Status is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Updated user details are returned\", function () {",
+              "    const data = pm.response.json();",
+              "    pm.expect(data.id).to.eql(Number(pm.collectionVariables.get(\"userId\")));",
+              "    pm.expect(data.lastName).to.eql(\"Vempati\");",
+              "    pm.expect(data.phone).to.eql(\"9876543211\");",
+              "    pm.expect(data.email).to.eql(pm.collectionVariables.get(\"userEmail\"));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Updates last name and phone number while retaining the same email for the duplicate-email test.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Madhavi\",\n  \"lastName\": \"Vempati\",\n  \"email\": \"{{userEmail}}\",\n  \"phone\": \"9876543211\",\n  \"status\": \"ACTIVE\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "05 - Duplicate Email (POST - Negative)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Duplicate email is rejected with 409 Conflict\", function () {",
+              "    pm.response.to.have.status(409);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        },
+        "description": "Attempts to create another user with the same email. Expected result is 409 Conflict.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"firstName\": \"Duplicate\",\n  \"lastName\": \"User\",\n  \"email\": \"{{userEmail}}\",\n  \"phone\": \"9000000000\",\n  \"status\": \"ACTIVE\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "06 - Delete User (DELETE)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Status is 204 No Content\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "pm.test(\"Response body is empty\", function () {",
+              "    pm.expect(pm.response.text()).to.eql(\"\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Deletes the user created at the beginning of the collection."
+      },
+      "response": []
+    },
+    {
+      "name": "07 - Verify Deleted User (GET - Negative)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Deleted user returns 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/{{userId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "{{userId}}"
+          ]
+        },
+        "description": "Confirms that the deleted user can no longer be retrieved."
+      },
+      "response": []
+    },
+    {
+      "name": "08 - Get Nonexistent User (GET - Negative)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "",
+              "pm.test(\"Nonexistent user returns 404 Not Found\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/users/999999999",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users",
+            "999999999"
+          ]
+        },
+        "description": "Checks the API response for an ID that should not exist."
+      },
+      "response": []
+    }
+  ]
+}

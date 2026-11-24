@@ -1,0 +1,20 @@
+
+# Maven build files
+target/
+
+# Generated reports and logs
+test-output/
+logs/
+
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.*

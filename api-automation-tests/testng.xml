@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="API Database Integration Test Suite">
+
+    <listeners>
+        <listener class-name="com.madhavi.api.utils.ExtentTestListener"/>
+    </listeners>
+
+    <test name="User Management API Tests">
+
+        <classes>
+            <class name="com.madhavi.api.tests.UserApiTests"/>
+        </classes>
+
+    </test>
+
+</suite>

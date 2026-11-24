@@ -1,0 +1,24 @@
+
+# Java compiled files
+*.class
+
+# Maven build output
+target/
+
+# Eclipse IDE files
+.classpath
+.project
+.settings/
+
+# Generated reports and logs
+test-output/
+logs/
+
+# Local credentials
+.env
+.env.*
+application-local.properties
+
+# OS files
+.DS_Store
+Thumbs.db
